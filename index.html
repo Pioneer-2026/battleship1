@@ -41,7 +41,8 @@
      .help-card{width:min(760px,94%);padding:20px;border-radius:12px;background:linear-gradient(180deg,#021427,#052033);border:1px solid rgba(255,255,255,0.04)}
 
      .small{font-size:0.85rem;color:#9fb7d4}
-     .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px}
+     .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+     .btn-ghost:hover{background:rgba(0,246,255,0.08)}
 
      .neon {text-shadow:0 2px 14px rgba(0,246,255,0.12)}
      
@@ -63,6 +64,7 @@
          <button onclick="toggleSound()" id="sound-btn" class="btn-ghost">Sound: On</button>
          <button onclick="showHelp()" class="btn-ghost">Help</button>
          <button onclick="cycleTheme()" class="btn-ghost">Theme</button>
+         <a href="https://github.com/Pioneer-2026/battleship1" target="_blank" class="btn-ghost">★ GitHub</a>
        </div>
      </header>
 

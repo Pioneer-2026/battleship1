@@ -1,227 +1,289 @@
 <!doctype html>
 <html lang="en">
- <head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20260703-05-6766c4c"}');</script><script src="/_sdk/f432b76fb310b513.telemetry_sdk.js" integrity="sha512-9FJQ55EKmmqhyyik8BhrMVfm0+iYYfb8uOlRsjtkxJMEI97qOVEI4PnHohDjQAtvAep0IOEpdQ64eki0sz62ug=="></script>
+ <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Battleship</title>
+  <title>Battleship — Neon Command</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-        body { font-family: 'DM Sans', sans-serif; }
-        .cell { width: 32px; height: 32px; border: 1px solid #334155; cursor: pointer; transition: background 0.1s; }
-        .cell:hover { opacity: 0.8; }
-        .cell.water { background: #0f172a; }
-        .cell.ship { background: #475569; }
-        .cell.hit { background: #dc2626; }
-        .cell.miss { background: #1e40af; }
-        .cell.preview { background: #22c55e80; }
-        .cell.preview-invalid { background: #ef444480; }
-        .grid-container { display: inline-grid; grid-template-columns: repeat(10, 32px); gap: 1px; }
-        @media (max-width: 640px) {
-            .cell { width: 28px; height: 28px; }
-            .grid-container { grid-template-columns: repeat(10, 28px); }
-        }
-    </style>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
-  <script src="/_sdk/0179d719c431a79e.data_sdk.js" type="text/javascript" integrity="sha512-OsRvJkI5GkC3MJQcgotQYotpzrMSX415GiKKgvYdxQEEkzD/fdchShO2FMSy0PJr/tiINMXOk5Vl2zAgg6bUiA=="></script>
-  <script src="/_sdk/0b3af1c300e720aa.resizing_sdk.js" type="text/javascript" integrity="sha512-nX1P6oXZmEY5wCI2lUVg3BwKu1cr0yi+ZpXgZ0Yn90vkSwvpmyzBMvOyD6VLJUtBwFI2dSrw1b6OvORxSggw3w=="></script>
+    :root{
+      --bg-1: #07122a; --bg-2:#0b2540; --panel:#071633; --accent:#00f6ff; --accent-2:#7c3aed; --danger:#ff4d6d; --ok:#22c55e;
+    }
+    html,body{height:100%;}
+    body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,var(--bg-1),var(--bg-2));color:#e6eef8;min-height:100vh}
+    .app {max-width:1100px;margin:0 auto;padding:28px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .orb{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 6px 20px rgba(124,58,237,0.24);display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{font-size:1.6rem}
+
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);padding:18px;border-radius:12px;box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+
+    .cell{width:36px;height:36px;border-radius:6px;border:1px solid rgba(255,255,255,0.03);cursor:pointer;transition:all .12s ease;display:inline-grid;place-items:center;font-size:12px}
+    .cell.water{background:linear-gradient(180deg,#031028,#06203a)}
+    .cell.ship{background:linear-gradient(180deg,#2b3948,#3b5166);box-shadow:inset 0 -6px 18px rgba(0,0,0,0.5)}
+    .cell.hit{background:linear-gradient(180deg,var(--danger),#c6283a);transform:scale(1.05);box-shadow:0 8px 28px rgba(198,40,58,0.28)}
+    .cell.miss{background:linear-gradient(180deg,#1e3a8a,#1f4fd0);opacity:0.9}
+    .cell.preview{outline:2px dashed rgba(34,197,94,0.6);transform:translateY(-2px)}
+    .cell.preview-invalid{outline:2px dashed rgba(239,68,68,0.5);opacity:0.6}
+
+    .grid-container{display:inline-grid;grid-template-columns:repeat(10,36px);gap:8px}
+    @media (max-width:640px){.cell{width:28px;height:28px}.grid-container{grid-template-columns:repeat(10,28px);gap:4px}}
+
+    .controls button{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;color:#012;padding:8px 14px;border-radius:9px;font-weight:700;box-shadow:0 8px 20px rgba(0,246,255,0.12)}
+    .muted-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent)}
+
+    .title-glow{background:linear-gradient(90deg,var(--accent),#9be7ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+    .help-modal{position:fixed;inset:0;background:rgba(2,6,23,0.7);display:flex;align-items:center;justify-content:center;z-index:40}
+    .help-card{width:min(760px,94%);padding:20px;border-radius:12px;background:linear-gradient(180deg,#021427,#052033);border:1px solid rgba(255,255,255,0.04)}
+
+    .small{font-size:0.85rem;color:#9fb7d4}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px}
+
+    .neon {text-shadow:0 2px 14px rgba(0,246,255,0.12)}
+  </style>
  </head>
- <body data-template-id="__page-root" class="min-h-screen flex items-center justify-center p-4">
-  <main class="w-full max-w-4xl mx-auto text-center"><!-- Name Entry -->
-   <div id="name-screen">
-    <h1 data-template-id="game-title" class="canva-text text-4xl font-bold mb-8"></h1>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-     <div><label data-template-id="p1-label" class="canva-text block mb-1 font-medium" for="p1-name"></label> <input id="p1-name" type="text" class="px-3 py-2 rounded bg-slate-800 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" maxlength="12">
-     </div>
-     <div><label data-template-id="p2-label" class="canva-text block mb-1 font-medium" for="p2-name"></label> <input id="p2-name" type="text" class="px-3 py-2 rounded bg-slate-800 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" maxlength="12">
-     </div>
-    </div><button data-template-id="start-btn" class="canva-button px-6 py-3 rounded-lg font-bold text-lg" onclick="startGame()"></button>
-   </div><!-- Placement Phase -->
-   <div id="placement-screen" class="hidden">
-    <h2 id="placement-title" class="text-2xl font-bold text-white mb-2"></h2>
-    <p id="placement-info" class="text-slate-300 mb-4"></p>
-    <div class="flex justify-center mb-4 gap-3"><button id="rotate-btn" class="px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded font-medium" onclick="toggleRotation()">Rotate</button> <button id="confirm-ships-btn" class="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded font-medium hidden" onclick="confirmPlacement()">Confirm</button>
+ <body>
+  <div class="app">
+    <header class="mb-6">
+      <div class="logo">
+        <div class="orb">BS</div>
+        <div>
+          <h1 class="title-glow">Battleship — Neon Command</h1>
+          <div class="small">Two-player local pass-and-play. High-tech mode enabled.</div>
+        </div>
+      </div>
+      <div class="flex gap-3 items-center">
+        <button onclick="toggleSound()" id="sound-btn" class="btn-ghost">Sound: On</button>
+        <button onclick="showHelp()" class="btn-ghost">Help</button>
+        <button onclick="cycleTheme()" class="btn-ghost">Theme</button>
+      </div>
+    </header>
+
+    <main class="panel">
+      <!-- Name Entry -->
+      <div id="name-screen">
+        <h2 class="text-xl font-bold mb-4">Enter player names</h2>
+        <div class="flex flex-col sm:flex-row gap-4 mb-4">
+          <div class="flex-1">
+            <label class="block small mb-1">Player 1</label>
+            <input id="p1-name" placeholder="Commander Red" class="w-full px-3 py-2 rounded-md bg-transparent border border-white/6" />
+          </div>
+          <div class="flex-1">
+            <label class="block small mb-1">Player 2</label>
+            <input id="p2-name" placeholder="Commander Blue" class="w-full px-3 py-2 rounded-md bg-transparent border border-white/6" />
+          </div>
+        </div>
+        <div class="flex gap-3 justify-center">
+          <button class="px-6 py-2" onclick="startGame()">Start Placement</button>
+          <button class="px-6 py-2 muted-btn" onclick="startGame(true)">Quick Start</button>
+        </div>
+      </div>
+
+      <!-- Placement Phase -->
+      <div id="placement-screen" class="hidden mt-4">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 id="placement-title" class="text-lg font-bold neon"></h3>
+            <div id="placement-info" class="small"></div>
+          </div>
+          <div class="controls flex gap-2">
+            <button id="rotate-btn" onclick="toggleRotation()" class="px-3 py-2 muted-btn">Rotate</button>
+            <button onclick="randomizeShips()" class="px-3 py-2 muted-btn">Randomize</button>
+            <button onclick="clearShips()" class="px-3 py-2 muted-btn">Clear</button>
+            <button id="confirm-ships-btn" onclick="confirmPlacement()" class="px-4 py-2" style="display:none">Confirm Ships</button>
+          </div>
+        </div>
+        <div id="placement-grid" class="grid-container mx-auto"></div>
+        <div class="mt-4 small text-center text-slate-300">Tip: Hover to preview ship placement, click to place.</div>
+      </div>
+
+      <!-- Handoff Screen -->
+      <div id="handoff-screen" class="hidden mt-4 text-center">
+        <div class="panel inline-block px-6 py-6">
+          <h2 id="handoff-text" class="text-xl font-bold mb-3 neon"></h2>
+          <p class="small mb-4">Make sure the other player is ready — their fleet is hidden until they press Continue.</p>
+          <div class="flex gap-3 justify-center">
+            <button onclick="proceedAfterHandoff()" class="px-6 py-2">Continue</button>
+            <button onclick="revealShipsPreview()" class="px-6 py-2 muted-btn">Peek (owner only)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Battle Phase -->
+      <div id="battle-screen" class="hidden mt-6">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 id="turn-indicator" class="text-lg font-bold"></h3>
+            <div id="battle-status" class="small"></div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="toggleSound()" class="btn-ghost">Toggle Sound</button>
+            <button onclick="showHelp()" class="btn-ghost">How to Play</button>
+          </div>
+        </div>
+        <div class="flex flex-col lg:flex-row gap-6 justify-center items-start">
+          <div class="panel p-4 text-center">
+            <p class="small mb-2">Enemy Waters</p>
+            <div id="attack-grid" class="grid-container mx-auto"></div>
+          </div>
+          <div class="panel p-4 text-center">
+            <p class="small mb-2">Your Fleet</p>
+            <div id="own-grid" class="grid-container mx-auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Win Screen -->
+      <div id="win-screen" class="hidden mt-6 text-center">
+        <h2 id="win-text" class="text-2xl font-bold text-yellow-300 mb-4"></h2>
+        <div class="flex gap-3 justify-center">
+          <button onclick="location.reload()" class="px-6 py-2">Play Again</button>
+          <button onclick="startGame(true)" class="px-6 py-2 muted-btn">Quick Rematch</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Help modal -->
+    <div id="help-modal" class="hidden help-modal">
+      <div class="help-card">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-lg font-bold">How to play</h3>
+            <div class="small">Place ships, pass the phone, then fire at coordinates. First to sink all opponent ships wins.</div>
+          </div>
+          <div><button onclick="showHelp(false)" class="btn-ghost">Close</button></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-bold">Placement</h4>
+            <ul class="small list-disc pl-5">
+              <li>Click cells to place the highlighted ship.</li>
+              <li>Use Rotate or Randomize to speed up placement.</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-bold">Battle</h4>
+            <ul class="small list-disc pl-5">
+              <li>Tap enemy grid to fire. Hits are red, misses are blue.</li>
+              <li>When it's the other player's turn, pass the phone and press Continue.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="placement-grid" class="grid-container mx-auto"></div>
-   </div><!-- Handoff Screen -->
-   <div id="handoff-screen" class="hidden">
-    <h2 id="handoff-text" class="text-2xl font-bold text-white mb-6"></h2><button class="px-6 py-3 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg font-bold" onclick="proceedAfterHandoff()">Ready</button>
-   </div><!-- Battle Phase -->
-   <div id="battle-screen" class="hidden">
-    <h2 id="turn-indicator" class="text-xl font-bold text-white mb-4"></h2>
-    <div class="flex flex-col lg:flex-row gap-6 justify-center items-center">
-     <div>
-      <p class="text-slate-400 mb-1 text-sm font-medium">Enemy Waters</p>
-      <div id="attack-grid" class="grid-container mx-auto"></div>
-     </div>
-     <div>
-      <p class="text-slate-400 mb-1 text-sm font-medium">Your Fleet</p>
-      <div id="own-grid" class="grid-container mx-auto"></div>
-     </div>
-    </div>
-    <p id="battle-status" class="text-slate-300 mt-4 h-6"></p>
-   </div><!-- Win Screen -->
-   <div id="win-screen" class="hidden">
-    <h2 id="win-text" class="text-3xl font-bold text-yellow-400 mb-6"></h2><button data-template-id="replay-btn" class="canva-button px-6 py-3 rounded-lg font-bold text-lg" onclick="location.reload()"></button>
-   </div>
-  </main>
-  <script src="/_sdk/e063511df281944a.editing_sdk.js" integrity="sha512-Xa8p4aPfoMxVnzxQE2WAG0FfoaPLxdjOJMfUZGm1yZosJTYmnNDvgLkJ2EoN0i3zxjeQVAzUMSXNvTKQVqbXyQ=="></script>
+  </div>
+
   <script>
     const SHIPS = [5,4,3,3,2];
     let players = [{name:'',board:[],shots:[]},{name:'',board:[],shots:[]}];
     let currentPlayer = 0;
-    let phase = 'names'; // names, placing, handoff, battle, won
-    let placingIndex = 0;
-    let horizontal = true;
-    let placedShips = [];
+    let phase = 'names';
+    let placingIndex = 0; let horizontal = true; let placedShips = [];
+    let soundOn = true;
+    let themeIndex = 0;
 
-    function createEmptyBoard() { return Array.from({length:10}, ()=>Array(10).fill(0)); }
+    function createEmptyBoard(){return Array.from({length:10},()=>Array(10).fill(0));}
 
-    function startGame() {
-        const n1 = document.getElementById('p1-name').value.trim() || 'Player 1';
-        const n2 = document.getElementById('p2-name').value.trim() || 'Player 2';
-        players[0].name = n1; players[1].name = n2;
-        players[0].board = createEmptyBoard(); players[1].board = createEmptyBoard();
-        players[0].shots = createEmptyBoard(); players[1].shots = createEmptyBoard();
-        currentPlayer = 0; placingIndex = 0; placedShips = []; horizontal = true;
-        document.getElementById('name-screen').classList.add('hidden');
-        startPlacement();
+    function startGame(quick=false){
+      const n1=document.getElementById('p1-name').value.trim()||'Player 1';
+      const n2=document.getElementById('p2-name').value.trim()||'Player 2';
+      players[0].name=n1; players[1].name=n2;
+      players[0].board=createEmptyBoard(); players[1].board=createEmptyBoard();
+      players[0].shots=createEmptyBoard(); players[1].shots=createEmptyBoard();
+      currentPlayer=0; placingIndex=0; placedShips=[]; horizontal=true;
+      document.getElementById('name-screen').classList.add('hidden');
+      if(quick){ // quick: randomize both and go to battle
+        randomizeAll(); startBattle(); return;
+      }
+      startPlacement();
     }
 
-    function startPlacement() {
-        phase = 'placing';
-        placingIndex = 0; placedShips = []; horizontal = true;
-        const s = document.getElementById('placement-screen');
-        s.classList.remove('hidden');
-        document.getElementById('placement-title').textContent = players[currentPlayer].name + ' — Place Your Ships';
-        updatePlacementInfo();
-        document.getElementById('confirm-ships-btn').classList.add('hidden');
-        renderPlacementGrid();
+    function startPlacement(){
+      phase='placing'; placingIndex=0; placedShips=[]; horizontal=true;
+      document.getElementById('placement-screen').classList.remove('hidden');
+      document.getElementById('placement-title').textContent = players[currentPlayer].name + ' — Place Your Ships';
+      updatePlacementInfo(); document.getElementById('confirm-ships-btn').style.display='none'; renderPlacementGrid();
     }
 
-    function updatePlacementInfo() {
-        if (placingIndex < SHIPS.length) {
-            document.getElementById('placement-info').textContent = 'Place ship of size ' + SHIPS[placingIndex] + ' (' + (horizontal?'horizontal':'vertical') + ')';
-        } else {
-            document.getElementById('placement-info').textContent = 'All ships placed!';
-            document.getElementById('confirm-ships-btn').classList.remove('hidden');
-        }
+    function updatePlacementInfo(){
+      if(placingIndex<SHIPS.length){document.getElementById('placement-info').textContent='Place ship of size '+SHIPS[placingIndex]+ ' ('+(horizontal?'horizontal':'vertical')+')';}
+      else{document.getElementById('placement-info').textContent='All ships placed!'; document.getElementById('confirm-ships-btn').style.display='inline-block';}
     }
 
-    function toggleRotation() { horizontal = !horizontal; updatePlacementInfo(); }
+    function toggleRotation(){horizontal=!horizontal; updatePlacementInfo();}
 
-    function renderPlacementGrid() {
-        const g = document.getElementById('placement-grid'); g.innerHTML = '';
-        const board = players[currentPlayer].board;
-        for (let r=0;r<10;r++) for (let c=0;c<10;c++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell ' + (board[r][c] ? 'ship' : 'water');
-            cell.dataset.r = r; cell.dataset.c = c;
-            cell.addEventListener('click', ()=>placeShip(r,c));
-            cell.addEventListener('mouseenter', ()=>previewShip(r,c));
-            cell.addEventListener('mouseleave', clearPreview);
-            g.appendChild(cell);
-        }
+    function renderPlacementGrid(){
+      const g=document.getElementById('placement-grid'); g.innerHTML=''; const board=players[currentPlayer].board;
+      for(let r=0;r<10;r++) for(let c=0;c<10;c++){
+        const cell=document.createElement('div'); cell.className='cell '+(board[r][c]?'ship':'water'); cell.dataset.r=r; cell.dataset.c=c;
+        cell.addEventListener('click',()=>placeShip(r,c)); cell.addEventListener('mouseenter',()=>previewShip(r,c)); cell.addEventListener('mouseleave',clearPreview);
+        g.appendChild(cell);
+      }
     }
 
-    function canPlace(board,r,c,size,horiz) {
-        for (let i=0;i<size;i++) {
-            const nr=horiz?r:r+i, nc=horiz?c+i:c;
-            if (nr>=10||nc>=10||board[nr][nc]) return false;
-        } return true;
+    function canPlace(board,r,c,size,horiz){
+      for(let i=0;i<size;i++){const nr=horiz?r:r+i, nc=horiz?c+i:c; if(nr>=10||nc>=10||board[nr][nc]) return false;} return true;
     }
 
-    function previewShip(r,c) {
-        if (placingIndex>=SHIPS.length) return;
-        const size=SHIPS[placingIndex]; const valid=canPlace(players[currentPlayer].board,r,c,size,horizontal);
-        for (let i=0;i<size;i++) {
-            const nr=horizontal?r:r+i, nc=horizontal?c+i:c;
-            if (nr>=10||nc>=10) continue;
-            const cell=document.getElementById('placement-grid').children[nr*10+nc];
-            if (!players[currentPlayer].board[nr][nc]) cell.classList.add(valid?'preview':'preview-invalid');
-        }
+    function previewShip(r,c){ if(placingIndex>=SHIPS.length) return; const size=SHIPS[placingIndex]; const valid=canPlace(players[currentPlayer].board,r,c,size,horizontal);
+      for(let i=0;i<size;i++){const nr=horizontal?r:r+i, nc=horizontal?c+i:c; if(nr>=10||nc>=10) continue; const cell=document.getElementById('placement-grid').children[nr*10+nc]; if(!players[currentPlayer].board[nr][nc]) cell.classList.add(valid?'preview':'preview-invalid'); }
+    }
+    function clearPreview(){ document.querySelectorAll('#placement-grid .preview, #placement-grid .preview-invalid').forEach(c=>c.classList.remove('preview','preview-invalid')); }
+
+    function placeShip(r,c){ if(placingIndex>=SHIPS.length) return; const size=SHIPS[placingIndex]; const board=players[currentPlayer].board; if(!canPlace(board,r,c,size,horizontal)) return; for(let i=0;i<size;i++){const nr=horizontal?r:r+i, nc=horizontal?c+i:c; board[nr][nc]=1;} placingIndex++; updatePlacementInfo(); renderPlacementGrid(); }
+
+    function confirmPlacement(){ document.getElementById('placement-screen').classList.add('hidden');
+      if(currentPlayer===0){ currentPlayer=1; document.getElementById('handoff-screen').classList.remove('hidden'); document.getElementById('handoff-text').textContent = 'Pass the phone to ' + players[1].name; phase='handoff'; }
+      else{ currentPlayer=0; startBattle(); }
     }
 
-    function clearPreview() {
-        document.querySelectorAll('#placement-grid .preview, #placement-grid .preview-invalid').forEach(c=>{c.classList.remove('preview','preview-invalid');});
+    function proceedAfterHandoff(){ document.getElementById('handoff-screen').classList.add('hidden'); startPlacement(); }
+
+    function startBattle(){ phase='battle'; currentPlayer=0; document.getElementById('battle-screen').classList.remove('hidden'); renderBattle(); }
+
+    function renderBattle(){ const opponent=1-currentPlayer; document.getElementById('turn-indicator').textContent = players[currentPlayer].name + "'s Turn"; 
+      const ag=document.getElementById('attack-grid'); ag.innerHTML=''; for(let r=0;r<10;r++) for(let c=0;c<10;c++){ const cell=document.createElement('div'); const shot=players[currentPlayer].shots[r][c]; cell.className='cell '+(shot===2?'hit':shot===1?'miss':'water'); if(!shot) cell.addEventListener('click',()=>fire(r,c)); ag.appendChild(cell);} 
+      const og=document.getElementById('own-grid'); og.innerHTML=''; const myBoard=players[currentPlayer].board; const theirShots=players[opponent].shots; for(let r=0;r<10;r++) for(let c=0;c<10;c++){ const cell=document.createElement('div'); const s=theirShots[r][c]; cell.className='cell '+(s===2?'hit':s===1?'miss':myBoard[r][c]?'ship':'water'); og.appendChild(cell);} }
+
+    function fire(r,c){ if(phase!=='battle') return; const opponent=1-currentPlayer; const hit = players[opponent].board[r][c]===1; players[currentPlayer].shots[r][c] = hit?2:1; document.getElementById('battle-status').textContent = hit?'Hit!':'Miss.'; playSound(hit? 'hit':'miss'); if(checkWin(currentPlayer)){ phase='won'; document.getElementById('battle-screen').classList.add('hidden'); document.getElementById('win-screen').classList.remove('hidden'); document.getElementById('win-text').textContent = players[currentPlayer].name + ' Wins!'; return; } if(!hit){ currentPlayer=1-currentPlayer; } setTimeout(()=>{ document.getElementById('battle-status').textContent=''; renderBattle(); }, 800); }
+
+    function checkWin(p){ const opp=1-p; const board=players[opp].board; const shots=players[p].shots; for(let r=0;r<10;r++) for(let c=0;c<10;c++) if(board[r][c]&&shots[r][c]!==2) return false; return true; }
+
+    // New helpers
+    function randomizeShips(){ const sizeList = [...SHIPS]; players[currentPlayer].board=createEmptyBoard(); placingIndex=0; for(let size of sizeList){ let placed=false; for(let attempts=0;attempts<200 && !placed; attempts++){ const horiz = Math.random()>.5; const r = Math.floor(Math.random()*10); const c = Math.floor(Math.random()*10); if(canPlace(players[currentPlayer].board,r,c,size,horiz)){ for(let i=0;i<size;i++){ const nr=horiz?r:r+i, nc=horiz?c+i:c; players[currentPlayer].board[nr][nc]=1;} placed=true; } } if(!placed) console.warn('failed place size',size); placingIndex++; }
+      updatePlacementInfo(); renderPlacementGrid();
     }
 
-    function placeShip(r,c) {
-        if (placingIndex>=SHIPS.length) return;
-        const size=SHIPS[placingIndex]; const board=players[currentPlayer].board;
-        if (!canPlace(board,r,c,size,horizontal)) return;
-        for (let i=0;i<size;i++) { const nr=horizontal?r:r+i, nc=horizontal?c+i:c; board[nr][nc]=1; }
-        placingIndex++; updatePlacementInfo(); renderPlacementGrid();
+    function randomizeAll(){ for(let p=0;p<2;p++){ players[p].board=createEmptyBoard(); players[p].shots=createEmptyBoard(); let i=0; for(let size of SHIPS){ let placed=false; for(let attempts=0;attempts<300 && !placed; attempts++){ const horiz = Math.random()>.5; const r = Math.floor(Math.random()*10); const c = Math.floor(Math.random()*10); if(canPlace(players[p].board,r,c,size,horiz)){ for(let k=0;k<size;k++){ const nr=horiz?r:r+k, nc=horiz?c+k:c; players[p].board[nr][nc]=1;} placed=true;} } i++; } } }
+
+    function clearShips(){ players[currentPlayer].board=createEmptyBoard(); placingIndex=0; updatePlacementInfo(); renderPlacementGrid(); }
+
+    function toggleSound(){ soundOn=!soundOn; document.getElementById('sound-btn').textContent = 'Sound: ' + (soundOn? 'On':'Off'); }
+    function playSound(type){ if(!soundOn) return; try{ if(type==='hit'){ const o=new Audio('https://freesound.org/data/previews/26/26779_512123-lq.mp3'); o.play(); }else{ const o=new Audio('https://freesound.org/data/previews/19/19550_7037-lq.mp3'); o.play(); } }catch(e){}
     }
 
-    function confirmPlacement() {
-        document.getElementById('placement-screen').classList.add('hidden');
-        if (currentPlayer===0) {
-            currentPlayer=1;
-            document.getElementById('handoff-screen').classList.remove('hidden');
-            document.getElementById('handoff-text').textContent = 'Pass to ' + players[1].name;
-            phase='handoff';
-        } else {
-            currentPlayer=0; startBattle();
-        }
+    function showHelp(show=true){ document.getElementById('help-modal').classList.toggle('hidden',!show); }
+
+    function cycleTheme(){ themeIndex=(themeIndex+1)%3; if(themeIndex===0){ document.documentElement.style.setProperty('--accent','#00f6ff'); document.documentElement.style.setProperty('--accent-2','#7c3aed'); }
+      if(themeIndex===1){ document.documentElement.style.setProperty('--accent','#ffb86b'); document.documentElement.style.setProperty('--accent-2','#ff6bcb'); }
+      if(themeIndex===2){ document.documentElement.style.setProperty('--accent','#9be7ff'); document.documentElement.style.setProperty('--accent-2','#6ee7b7'); }
     }
 
-    function proceedAfterHandoff() {
-        document.getElementById('handoff-screen').classList.add('hidden');
-        startPlacement();
+    // Peek owner's ships on handoff (for owner only)
+    function revealShipsPreview(){ const board = players[currentPlayer===0?1:0].board; // show enemy placement briefly
+      const og = document.createElement('div'); og.style.position='fixed'; og.style.inset='12%'; og.style.zIndex=60; og.style.pointerEvents='none'; og.style.display='grid'; og.style.gridTemplateColumns='repeat(10,1fr)'; og.style.gap='6px';
+      for(let r=0;r<10;r++) for(let c=0;c<10;c++){ const d=document.createElement('div'); d.style.width='18px'; d.style.height='18px'; d.style.borderRadius='4px'; d.style.background = board[r][c]? 'rgba(255,255,255,0.12)':'rgba(255,255,255,0.02)'; og.appendChild(d);} document.body.appendChild(og); setTimeout(()=>og.remove(),1200);
     }
 
-    function startBattle() {
-        phase='battle'; currentPlayer=0;
-        document.getElementById('battle-screen').classList.remove('hidden');
-        renderBattle();
-    }
+    // Initialization helpers for battle
+    function renderAllGrids(){ if(phase==='placing') renderPlacementGrid(); if(phase==='battle') renderBattle(); }
 
-    function renderBattle() {
-        const opponent = 1-currentPlayer;
-        document.getElementById('turn-indicator').textContent = players[currentPlayer].name + "'s Turn";
-        // Attack grid (opponent's board, fog of war)
-        const ag = document.getElementById('attack-grid'); ag.innerHTML='';
-        for (let r=0;r<10;r++) for (let c=0;c<10;c++) {
-            const cell=document.createElement('div');
-            const shot=players[currentPlayer].shots[r][c];
-            cell.className='cell '+(shot===2?'hit':shot===1?'miss':'water');
-            if (!shot) cell.addEventListener('click',()=>fire(r,c));
-            ag.appendChild(cell);
-        }
-        // Own grid
-        const og = document.getElementById('own-grid'); og.innerHTML='';
-        const myBoard=players[currentPlayer].board; const theirShots=players[opponent].shots;
-        for (let r=0;r<10;r++) for (let c=0;c<10;c++) {
-            const cell=document.createElement('div');
-            const s=theirShots[r][c];
-            cell.className='cell '+(s===2?'hit':s===1?'miss':myBoard[r][c]?'ship':'water');
-            og.appendChild(cell);
-        }
-    }
+    // make sure click targets exist before use
+    document.addEventListener('click',(e)=>{});
 
-    function fire(r,c) {
-        if (phase!=='battle') return;
-        const opponent=1-currentPlayer;
-        const hit = players[opponent].board[r][c]===1;
-        players[currentPlayer].shots[r][c] = hit?2:1;
-        document.getElementById('battle-status').textContent = hit?'Hit!':'Miss.';
-        if (checkWin(currentPlayer)) {
-            phase='won';
-            document.getElementById('battle-screen').classList.add('hidden');
-            document.getElementById('win-screen').classList.remove('hidden');
-            document.getElementById('win-text').textContent = players[currentPlayer].name + ' Wins!';
-            return;
-        }
-        if (!hit) { currentPlayer=1-currentPlayer; }
-        setTimeout(()=>{ document.getElementById('battle-status').textContent=''; renderBattle(); }, 800);
-    }
-
-    function checkWin(p) {
-        const opp=1-p; const board=players[opp].board; const shots=players[p].shots;
-        for (let r=0;r<10;r++) for (let c=0;c<10;c++) if (board[r][c]&&shots[r][c]!==2) return false;
-        return true;
-    }
-    </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a15a7e9dc494ce2b',t:'MTc4MzEyOTk4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </script>
+ </body>
 </html>

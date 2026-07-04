@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+ <head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20260703-05-6766c4c"}');</script><script src="/_sdk/f432b76fb310b513.telemetry_sdk.js" integrity="sha512-9FJQ55EKmmqhyyik8BhrMVfm0+iYYfb8uOlRsjtkxJMEI97qOVEI4PnHohDjQAtvAep0IOEpdQ64eki0sz62ug=="></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battleship</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .cell { width: 32px; height: 32px; border: 1px solid #334155; cursor: pointer; transition: background 0.1s; }
+        .cell:hover { opacity: 0.8; }
+        .cell.water { background: #0f172a; }
+        .cell.ship { background: #475569; }
+        .cell.hit { background: #dc2626; }
+        .cell.miss { background: #1e40af; }
+        .cell.preview { background: #22c55e80; }
+        .cell.preview-invalid { background: #ef444480; }
+        .grid-container { display: inline-grid; grid-template-columns: repeat(10, 32px); gap: 1px; }
+        @media (max-width: 640px) {
+            .cell { width: 28px; height: 28px; }
+            .grid-container { grid-template-columns: repeat(10, 28px); }
+        }
+    </style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="/_sdk/0179d719c431a79e.data_sdk.js" type="text/javascript" integrity="sha512-OsRvJkI5GkC3MJQcgotQYotpzrMSX415GiKKgvYdxQEEkzD/fdchShO2FMSy0PJr/tiINMXOk5Vl2zAgg6bUiA=="></script>
+  <script src="/_sdk/0b3af1c300e720aa.resizing_sdk.js" type="text/javascript" integrity="sha512-nX1P6oXZmEY5wCI2lUVg3BwKu1cr0yi+ZpXgZ0Yn90vkSwvpmyzBMvOyD6VLJUtBwFI2dSrw1b6OvORxSggw3w=="></script>
+ </head>
+ <body data-template-id="__page-root" class="min-h-screen flex items-center justify-center p-4">
+  <main class="w-full max-w-4xl mx-auto text-center"><!-- Name Entry -->
+   <div id="name-screen">
+    <h1 data-template-id="game-title" class="canva-text text-4xl font-bold mb-8"></h1>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+     <div><label data-template-id="p1-label" class="canva-text block mb-1 font-medium" for="p1-name"></label> <input id="p1-name" type="text" class="px-3 py-2 rounded bg-slate-800 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" maxlength="12">
+     </div>
+     <div><label data-template-id="p2-label" class="canva-text block mb-1 font-medium" for="p2-name"></label> <input id="p2-name" type="text" class="px-3 py-2 rounded bg-slate-800 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" maxlength="12">
+     </div>
+    </div><button data-template-id="start-btn" class="canva-button px-6 py-3 rounded-lg font-bold text-lg" onclick="startGame()"></button>
+   </div><!-- Placement Phase -->
+   <div id="placement-screen" class="hidden">
+    <h2 id="placement-title" class="text-2xl font-bold text-white mb-2"></h2>
+    <p id="placement-info" class="text-slate-300 mb-4"></p>
+    <div class="flex justify-center mb-4 gap-3"><button id="rotate-btn" class="px-4 py-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded font-medium" onclick="toggleRotation()">Rotate</button> <button id="confirm-ships-btn" class="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded font-medium hidden" onclick="confirmPlacement()">Confirm</button>
+    </div>
+    <div id="placement-grid" class="grid-container mx-auto"></div>
+   </div><!-- Handoff Screen -->
+   <div id="handoff-screen" class="hidden">
+    <h2 id="handoff-text" class="text-2xl font-bold text-white mb-6"></h2><button class="px-6 py-3 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg font-bold" onclick="proceedAfterHandoff()">Ready</button>
+   </div><!-- Battle Phase -->
+   <div id="battle-screen" class="hidden">
+    <h2 id="turn-indicator" class="text-xl font-bold text-white mb-4"></h2>
+    <div class="flex flex-col lg:flex-row gap-6 justify-center items-center">
+     <div>
+      <p class="text-slate-400 mb-1 text-sm font-medium">Enemy Waters</p>
+      <div id="attack-grid" class="grid-container mx-auto"></div>
+     </div>
+     <div>
+      <p class="text-slate-400 mb-1 text-sm font-medium">Your Fleet</p>
+      <div id="own-grid" class="grid-container mx-auto"></div>
+     </div>
+    </div>
+    <p id="battle-status" class="text-slate-300 mt-4 h-6"></p>
+   </div><!-- Win Screen -->
+   <div id="win-screen" class="hidden">
+    <h2 id="win-text" class="text-3xl font-bold text-yellow-400 mb-6"></h2><button data-template-id="replay-btn" class="canva-button px-6 py-3 rounded-lg font-bold text-lg" onclick="location.reload()"></button>
+   </div>
+  </main>
+  <script src="/_sdk/e063511df281944a.editing_sdk.js" integrity="sha512-Xa8p4aPfoMxVnzxQE2WAG0FfoaPLxdjOJMfUZGm1yZosJTYmnNDvgLkJ2EoN0i3zxjeQVAzUMSXNvTKQVqbXyQ=="></script>
+  <script>
+    const SHIPS = [5,4,3,3,2];
+    let players = [{name:'',board:[],shots:[]},{name:'',board:[],shots:[]}];
+    let currentPlayer = 0;
+    let phase = 'names'; // names, placing, handoff, battle, won
+    let placingIndex = 0;
+    let horizontal = true;
+    let placedShips = [];
+
+    function createEmptyBoard() { return Array.from({length:10}, ()=>Array(10).fill(0)); }
+
+    function startGame() {
+        const n1 = document.getElementById('p1-name').value.trim() || 'Player 1';
+        const n2 = document.getElementById('p2-name').value.trim() || 'Player 2';
+        players[0].name = n1; players[1].name = n2;
+        players[0].board = createEmptyBoard(); players[1].board = createEmptyBoard();
+        players[0].shots = createEmptyBoard(); players[1].shots = createEmptyBoard();
+        currentPlayer = 0; placingIndex = 0; placedShips = []; horizontal = true;
+        document.getElementById('name-screen').classList.add('hidden');
+        startPlacement();
+    }
+
+    function startPlacement() {
+        phase = 'placing';
+        placingIndex = 0; placedShips = []; horizontal = true;
+        const s = document.getElementById('placement-screen');
+        s.classList.remove('hidden');
+        document.getElementById('placement-title').textContent = players[currentPlayer].name + ' — Place Your Ships';
+        updatePlacementInfo();
+        document.getElementById('confirm-ships-btn').classList.add('hidden');
+        renderPlacementGrid();
+    }
+
+    function updatePlacementInfo() {
+        if (placingIndex < SHIPS.length) {
+            document.getElementById('placement-info').textContent = 'Place ship of size ' + SHIPS[placingIndex] + ' (' + (horizontal?'horizontal':'vertical') + ')';
+        } else {
+            document.getElementById('placement-info').textContent = 'All ships placed!';
+            document.getElementById('confirm-ships-btn').classList.remove('hidden');
+        }
+    }
+
+    function toggleRotation() { horizontal = !horizontal; updatePlacementInfo(); }
+
+    function renderPlacementGrid() {
+        const g = document.getElementById('placement-grid'); g.innerHTML = '';
+        const board = players[currentPlayer].board;
+        for (let r=0;r<10;r++) for (let c=0;c<10;c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell ' + (board[r][c] ? 'ship' : 'water');
+            cell.dataset.r = r; cell.dataset.c = c;
+            cell.addEventListener('click', ()=>placeShip(r,c));
+            cell.addEventListener('mouseenter', ()=>previewShip(r,c));
+            cell.addEventListener('mouseleave', clearPreview);
+            g.appendChild(cell);
+        }
+    }
+
+    function canPlace(board,r,c,size,horiz) {
+        for (let i=0;i<size;i++) {
+            const nr=horiz?r:r+i, nc=horiz?c+i:c;
+            if (nr>=10||nc>=10||board[nr][nc]) return false;
+        } return true;
+    }
+
+    function previewShip(r,c) {
+        if (placingIndex>=SHIPS.length) return;
+        const size=SHIPS[placingIndex]; const valid=canPlace(players[currentPlayer].board,r,c,size,horizontal);
+        for (let i=0;i<size;i++) {
+            const nr=horizontal?r:r+i, nc=horizontal?c+i:c;
+            if (nr>=10||nc>=10) continue;
+            const cell=document.getElementById('placement-grid').children[nr*10+nc];
+            if (!players[currentPlayer].board[nr][nc]) cell.classList.add(valid?'preview':'preview-invalid');
+        }
+    }
+
+    function clearPreview() {
+        document.querySelectorAll('#placement-grid .preview, #placement-grid .preview-invalid').forEach(c=>{c.classList.remove('preview','preview-invalid');});
+    }
+
+    function placeShip(r,c) {
+        if (placingIndex>=SHIPS.length) return;
+        const size=SHIPS[placingIndex]; const board=players[currentPlayer].board;
+        if (!canPlace(board,r,c,size,horizontal)) return;
+        for (let i=0;i<size;i++) { const nr=horizontal?r:r+i, nc=horizontal?c+i:c; board[nr][nc]=1; }
+        placingIndex++; updatePlacementInfo(); renderPlacementGrid();
+    }
+
+    function confirmPlacement() {
+        document.getElementById('placement-screen').classList.add('hidden');
+        if (currentPlayer===0) {
+            currentPlayer=1;
+            document.getElementById('handoff-screen').classList.remove('hidden');
+            document.getElementById('handoff-text').textContent = 'Pass to ' + players[1].name;
+            phase='handoff';
+        } else {
+            currentPlayer=0; startBattle();
+        }
+    }
+
+    function proceedAfterHandoff() {
+        document.getElementById('handoff-screen').classList.add('hidden');
+        startPlacement();
+    }
+
+    function startBattle() {
+        phase='battle'; currentPlayer=0;
+        document.getElementById('battle-screen').classList.remove('hidden');
+        renderBattle();
+    }
+
+    function renderBattle() {
+        const opponent = 1-currentPlayer;
+        document.getElementById('turn-indicator').textContent = players[currentPlayer].name + "'s Turn";
+        // Attack grid (opponent's board, fog of war)
+        const ag = document.getElementById('attack-grid'); ag.innerHTML='';
+        for (let r=0;r<10;r++) for (let c=0;c<10;c++) {
+            const cell=document.createElement('div');
+            const shot=players[currentPlayer].shots[r][c];
+            cell.className='cell '+(shot===2?'hit':shot===1?'miss':'water');
+            if (!shot) cell.addEventListener('click',()=>fire(r,c));
+            ag.appendChild(cell);
+        }
+        // Own grid
+        const og = document.getElementById('own-grid'); og.innerHTML='';
+        const myBoard=players[currentPlayer].board; const theirShots=players[opponent].shots;
+        for (let r=0;r<10;r++) for (let c=0;c<10;c++) {
+            const cell=document.createElement('div');
+            const s=theirShots[r][c];
+            cell.className='cell '+(s===2?'hit':s===1?'miss':myBoard[r][c]?'ship':'water');
+            og.appendChild(cell);
+        }
+    }
+
+    function fire(r,c) {
+        if (phase!=='battle') return;
+        const opponent=1-currentPlayer;
+        const hit = players[opponent].board[r][c]===1;
+        players[currentPlayer].shots[r][c] = hit?2:1;
+        document.getElementById('battle-status').textContent = hit?'Hit!':'Miss.';
+        if (checkWin(currentPlayer)) {
+            phase='won';
+            document.getElementById('battle-screen').classList.add('hidden');
+            document.getElementById('win-screen').classList.remove('hidden');
+            document.getElementById('win-text').textContent = players[currentPlayer].name + ' Wins!';
+            return;
+        }
+        if (!hit) { currentPlayer=1-currentPlayer; }
+        setTimeout(()=>{ document.getElementById('battle-status').textContent=''; renderBattle(); }, 800);
+    }
+
+    function checkWin(p) {
+        const opp=1-p; const board=players[opp].board; const shots=players[p].shots;
+        for (let r=0;r<10;r++) for (let c=0;c<10;c++) if (board[r][c]&&shots[r][c]!==2) return false;
+        return true;
+    }
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a15a7e9dc494ce2b',t:'MTc4MzEyOTk4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
